@@ -33,8 +33,6 @@ func TrimBuildFilesFromExcludes(excludes []string, dockerfile string, dockerfile
 		excludes = append(excludes, "!.dockerignore")
 	}
 
-	// canonicalize dockerfile name to be platform-independent.
-	dockerfile = filepath.ToSlash(dockerfile)
 	if keep, _ := patternmatcher.Matches(dockerfile, excludes); keep && !dockerfileFromStdin {
 		excludes = append(excludes, "!"+dockerfile)
 	}
