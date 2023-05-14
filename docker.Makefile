@@ -76,7 +76,7 @@ shellcheck: ## run shellcheck validation
 	docker buildx bake shellcheck
 
 .PHONY: fmt
-fmt: ## run gofmt
+fmt: ## run gofumpt
 	$(DOCKER_RUN) $(DEV_DOCKER_IMAGE_NAME) make fmt
 
 .PHONY: vendor
@@ -102,6 +102,10 @@ authors: ## generate AUTHORS file from git history
 .PHONY: manpages
 manpages: build_docker_image ## generate man pages from go source and markdown
 	$(DOCKER_RUN) -it $(DEV_DOCKER_IMAGE_NAME) make manpages
+
+.PHONY: mddocs
+mddocs: build_docker_image ## generate markdown files from go source
+	$(DOCKER_RUN) -it $(DEV_DOCKER_IMAGE_NAME) make mddocs
 
 .PHONY: yamldocs
 yamldocs: build_docker_image ## generate documentation YAML files consumed by docs repo

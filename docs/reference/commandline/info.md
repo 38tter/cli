@@ -1,23 +1,20 @@
----
-title: "info"
-description: "The info command description and usage"
-keywords: "display, docker, information"
----
-
 # info
 
-```markdown
-Usage:  docker info [OPTIONS]
-
+<!---MARKER_GEN_START-->
 Display system-wide information
 
-Aliases:
-  docker system info, docker info
+### Aliases
 
-Options:
-  -f, --format string   Format the output using the given Go template
-      --help            Print usage
-```
+`docker system info`, `docker info`
+
+### Options
+
+| Name                                   | Type     | Default | Description                                                                                                                                                                                                                                                        |
+|:---------------------------------------|:---------|:--------|:-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`-f`](#format), [`--format`](#format) | `string` |         | Format output using a custom template:<br>'json':             Print in JSON format<br>'TEMPLATE':         Print output using the given Go template.<br>Refer to https://docs.docker.com/go/formatting/ for more information about formatting output with templates |
+
+
+<!---MARKER_GEN_END-->
 
 ## Description
 
@@ -43,16 +40,24 @@ available on the volume where `/var/lib/docker` is mounted.
 
 ### Show output
 
-The example below shows the output for a daemon running on Red Hat Enterprise Linux,
-using the `devicemapper` storage driver. As can be seen in the output, additional
-information about the `devicemapper` storage driver is shown:
+The example below shows the output for a daemon running on Ubuntu Linux,
+using the `overlay2` storage driver. As can be seen in the output, additional
+information about the `overlay2` storage driver is shown:
 
 ```console
 $ docker info
 
-Client:
+Client: Docker Engine - Community
+ Version:    24.0.0
  Context:    default
  Debug Mode: false
+ Plugins:
+  buildx: Docker Buildx (Docker Inc.)
+    Version:  v0.10.4
+    Path:     /usr/libexec/docker/cli-plugins/docker-buildx
+  compose: Docker Compose (Docker Inc.)
+    Version:  v2.17.2
+    Path:     /usr/libexec/docker/cli-plugins/docker-compose
 
 Server:
  Containers: 14
@@ -60,160 +65,78 @@ Server:
   Paused: 1
   Stopped: 10
  Images: 52
- Server Version: 1.10.3
- Storage Driver: devicemapper
-  Pool Name: docker-202:2-25583803-pool
-  Pool Blocksize: 65.54 kB
-  Base Device Size: 10.74 GB
-  Backing Filesystem: xfs
-  Data file: /dev/loop0
-  Metadata file: /dev/loop1
-  Data Space Used: 1.68 GB
-  Data Space Total: 107.4 GB
-  Data Space Available: 7.548 GB
-  Metadata Space Used: 2.322 MB
-  Metadata Space Total: 2.147 GB
-  Metadata Space Available: 2.145 GB
-  Udev Sync Supported: true
-  Deferred Removal Enabled: false
-  Deferred Deletion Enabled: false
-  Deferred Deleted Device Count: 0
-  Data loop file: /var/lib/docker/devicemapper/devicemapper/data
-  Metadata loop file: /var/lib/docker/devicemapper/devicemapper/metadata
-  Library Version: 1.02.107-RHEL7 (2015-12-01)
- Execution Driver: native-0.2
+ Server Version: 23.0.3
+ Storage Driver: overlay2
+  Backing Filesystem: extfs
+  Supports d_type: true
+  Using metacopy: false
+  Native Overlay Diff: true
+  userxattr: false
  Logging Driver: json-file
+ Cgroup Driver: systemd
+ Cgroup Version: 2
  Plugins:
   Volume: local
-  Network: null host bridge
- Kernel Version: 3.10.0-327.el7.x86_64
- Operating System: Red Hat Enterprise Linux Server 7.2 (Maipo)
+  Network: bridge host ipvlan macvlan null overlay
+  Log: awslogs fluentd gcplogs gelf journald json-file local logentries splunk syslog
+ Swarm: inactive
+ Runtimes: io.containerd.runc.v2 runc
+ Default Runtime: runc
+ Init Binary: docker-init
+ containerd version: 2806fc1057397dbaeefbea0e4e17bddfbd388f38
+ runc version: v1.1.5-0-gf19387a
+ init version: de40ad0
+ Security Options:
+  apparmor
+  seccomp
+   Profile: builtin
+  cgroupns
+ Kernel Version: 5.15.0-25-generic
+ Operating System: Ubuntu 22.04 LTS
  OSType: linux
  Architecture: x86_64
  CPUs: 1
  Total Memory: 991.7 MiB
  Name: ip-172-30-0-91.ec2.internal
- ID: I54V:OLXT:HVMM:TPKO:JPHQ:CQCD:JNLC:O3BZ:4ZVJ:43XJ:PFHZ:6N2S
+ ID: 4cee4408-10d2-4e17-891c-a41736ac4536
  Docker Root Dir: /var/lib/docker
  Debug Mode: false
  Username: gordontheturtle
- Registry: https://index.docker.io/v1/
- Insecure registries:
-  myinsecurehost:5000
-  127.0.0.0/8
-```
-
-### <a name=debug></a> Show debugging output (--debug)
-
-Here is a sample output for a daemon running on Ubuntu, using the overlay2
-storage driver and a node that is part of a 2-node swarm:
-
-```console
-$ docker --debug info
-
-Client:
- Context:    default
- Debug Mode: true
-
-Server:
- Containers: 14
-  Running: 3
-  Paused: 1
-  Stopped: 10
- Images: 52
- Server Version: 1.13.0
- Storage Driver: overlay2
-  Backing Filesystem: extfs
-  Supports d_type: true
-  Native Overlay Diff: false
- Logging Driver: json-file
- Cgroup Driver: cgroupfs
- Plugins:
-  Volume: local
-  Network: bridge host macvlan null overlay
- Swarm: active
-  NodeID: rdjq45w1op418waxlairloqbm
-  Is Manager: true
-  ClusterID: te8kdyw33n36fqiz74bfjeixd
-  Managers: 1
-  Nodes: 2
-  Orchestration:
-   Task History Retention Limit: 5
-  Raft:
-   Snapshot Interval: 10000
-   Number of Old Snapshots to Retain: 0
-   Heartbeat Tick: 1
-   Election Tick: 3
-  Dispatcher:
-   Heartbeat Period: 5 seconds
-  CA Configuration:
-   Expiry Duration: 3 months
-  Root Rotation In Progress: false
-  Node Address: 172.16.66.128 172.16.66.129
-  Manager Addresses:
-   172.16.66.128:2477
- Runtimes: runc
- Default Runtime: runc
- Init Binary: docker-init
- containerd version: 8517738ba4b82aff5662c97ca4627e7e4d03b531
- runc version: ac031b5bf1cc92239461125f4c1ffb760522bbf2
- init version: N/A (expected: v0.13.0)
- Security Options:
-  apparmor
-  seccomp
-   Profile: default
- Kernel Version: 4.4.0-31-generic
- Operating System: Ubuntu 16.04.1 LTS
- OSType: linux
- Architecture: x86_64
- CPUs: 2
- Total Memory: 1.937 GiB
- Name: ubuntu
- ID: H52R:7ZR6:EIIA:76JG:ORIY:BVKF:GSFU:HNPG:B5MK:APSC:SZ3Q:N326
- Docker Root Dir: /var/lib/docker
- Debug Mode: true
-  File Descriptors: 30
-  Goroutines: 123
-  System Time: 2016-11-12T17:24:37.955404361-08:00
-  EventsListeners: 0
- Http Proxy: http://test:test@proxy.example.com:8080
- Https Proxy: https://test:test@proxy.example.com:8080
- No Proxy: localhost,127.0.0.1,docker-registry.somecorporation.com
- Registry: https://index.docker.io/v1/
- WARNING: No swap limit support
- Labels:
-  storage=ssd
-  staging=true
  Experimental: false
  Insecure Registries:
+  myinsecurehost:5000
   127.0.0.0/8
- Registry Mirrors:
-   http://192.168.1.2/
-   http://registry-mirror.example.com:5000/
  Live Restore Enabled: false
 ```
 
-The global `-D` option causes all `docker` commands to output debug information.
-
-### <a name=format></a> Format the output (--format)
+### <a name="format"></a> Format the output (--format)
 
 You can also specify the output format:
 
 ```console
 $ docker info --format '{{json .}}'
 
-{"ID":"I54V:OLXT:HVMM:TPKO:JPHQ:CQCD:JNLC:O3BZ:4ZVJ:43XJ:PFHZ:6N2S","Containers":14, ...}
+{"ID":"4cee4408-10d2-4e17-891c-a41736ac4536","Containers":14, ...}
 ```
 
 ### Run `docker info` on Windows
 
-Here is a sample output for a daemon running on Windows Server 2016:
+Here is a sample output for a daemon running on Windows Server:
 
 ```console
-E:\docker>docker info
-Client:
+C:\> docker info
+
+Client: Docker Engine - Community
+ Version:    24.0.0
  Context:    default
  Debug Mode: false
+ Plugins:
+  buildx: Docker Buildx (Docker Inc.)
+    Version:  v0.10.4
+    Path:     C:\Program Files\Docker\cli-plugins\docker-buildx.exe
+  compose: Docker Compose (Docker Inc.)
+    Version:  v2.17.2
+    Path:     C:\Program Files\Docker\cli-plugins\docker-compose.exe
 
 Server:
  Containers: 1
@@ -221,27 +144,28 @@ Server:
   Paused: 0
   Stopped: 1
  Images: 17
- Server Version: 1.13.0
+ Server Version: 23.0.3
  Storage Driver: windowsfilter
-  Windows:
  Logging Driver: json-file
  Plugins:
   Volume: local
-  Network: nat null overlay
+  Network: ics internal l2bridge l2tunnel nat null overlay private transparent
+  Log: awslogs etwlogs fluentd gcplogs gelf json-file local logentries splunk syslog
  Swarm: inactive
  Default Isolation: process
- Kernel Version: 10.0 14393 (14393.206.amd64fre.rs1_release.160912-1937)
- Operating System: Windows Server 2016 Datacenter
+ Kernel Version: 10.0 20348 (20348.1.amd64fre.fe_release.210507-1500)
+ Operating System: Microsoft Windows Server Version 21H2 (OS Build 20348.707)
  OSType: windows
  Architecture: x86_64
  CPUs: 8
  Total Memory: 3.999 GiB
  Name: WIN-V0V70C0LU5P
- ID: NYMS:B5VK:UMSL:FVDZ:EWB5:FKVK:LPFL:FJMQ:H6FT:BZJ6:L2TD:XH62
- Docker Root Dir: C:\control
+ ID: 2880d38d-464e-4d01-91bd-c76f33ba3981
+ Docker Root Dir: C:\ProgramData\docker
  Debug Mode: false
- Registry: https://index.docker.io/v1/
+ Experimental: true
  Insecure Registries:
+  myregistry:5000
   127.0.0.0/8
  Registry Mirrors:
    http://192.168.1.2/

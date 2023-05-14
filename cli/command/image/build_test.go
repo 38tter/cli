@@ -34,7 +34,7 @@ func TestRunBuildDockerfileFromStdinWithCompress(t *testing.T) {
 
 	cli := test.NewFakeCli(&fakeClient{imageBuildFunc: fakeImageBuild})
 	dockerfile := bytes.NewBufferString(`
-		FROM alpine:3.6
+		FROM alpine:frozen
 		COPY foo /
 	`)
 	cli.SetIn(streams.NewIn(io.NopCloser(dockerfile)))
@@ -66,7 +66,7 @@ func TestRunBuildResetsUidAndGidInContext(t *testing.T) {
 	dir := fs.NewDir(t, "test-build-context",
 		fs.WithFile("foo", "some content", fs.AsUser(65534, 65534)),
 		fs.WithFile("Dockerfile", `
-			FROM alpine:3.6
+			FROM alpine:frozen
 			COPY foo bar /
 		`),
 	)
@@ -139,9 +139,9 @@ func TestRunBuildFromLocalGitHubDir(t *testing.T) {
 	t.Setenv("DOCKER_BUILDKIT", "0")
 
 	buildDir := filepath.Join(t.TempDir(), "github.com", "docker", "no-such-repository")
-	err := os.MkdirAll(buildDir, 0777)
+	err := os.MkdirAll(buildDir, 0o777)
 	assert.NilError(t, err)
-	err = os.WriteFile(filepath.Join(buildDir, "Dockerfile"), []byte("FROM busybox\n"), 0644)
+	err = os.WriteFile(filepath.Join(buildDir, "Dockerfile"), []byte("FROM busybox\n"), 0o644)
 	assert.NilError(t, err)
 
 	client := test.NewFakeCli(&fakeClient{})
@@ -155,7 +155,7 @@ func TestRunBuildFromLocalGitHubDir(t *testing.T) {
 func TestRunBuildWithSymlinkedContext(t *testing.T) {
 	t.Setenv("DOCKER_BUILDKIT", "0")
 	dockerfile := `
-FROM alpine:3.6
+FROM alpine:frozen
 RUN echo hello world
 `
 

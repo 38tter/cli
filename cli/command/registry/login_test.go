@@ -34,11 +34,11 @@ type fakeClient struct {
 	client.Client
 }
 
-func (c fakeClient) Info(ctx context.Context) (types.Info, error) {
+func (c fakeClient) Info(context.Context) (types.Info, error) {
 	return types.Info{}, nil
 }
 
-func (c fakeClient) RegistryLogin(ctx context.Context, auth types.AuthConfig) (registrytypes.AuthenticateOKBody, error) {
+func (c fakeClient) RegistryLogin(_ context.Context, auth registrytypes.AuthConfig) (registrytypes.AuthenticateOKBody, error) {
 	if auth.Password == expiredPassword {
 		return registrytypes.AuthenticateOKBody{}, fmt.Errorf("Invalid Username or Password")
 	}
@@ -53,16 +53,16 @@ func (c fakeClient) RegistryLogin(ctx context.Context, auth types.AuthConfig) (r
 
 func TestLoginWithCredStoreCreds(t *testing.T) {
 	testCases := []struct {
-		inputAuthConfig types.AuthConfig
+		inputAuthConfig registrytypes.AuthConfig
 		expectedMsg     string
 		expectedErr     string
 	}{
 		{
-			inputAuthConfig: types.AuthConfig{},
+			inputAuthConfig: registrytypes.AuthConfig{},
 			expectedMsg:     "Authenticating with existing credentials...\n",
 		},
 		{
-			inputAuthConfig: types.AuthConfig{
+			inputAuthConfig: registrytypes.AuthConfig{
 				Username: userErr,
 			},
 			expectedMsg: "Authenticating with existing credentials...\n",

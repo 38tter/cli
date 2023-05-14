@@ -1,23 +1,20 @@
----
-title: "export"
-description: "The export command description and usage"
-keywords: "export, file, system, container"
----
-
 # export
 
-```markdown
-Usage:  docker export [OPTIONS] CONTAINER
-
+<!---MARKER_GEN_START-->
 Export a container's filesystem as a tar archive
 
-Aliases:
-  docker container export, docker export
+### Aliases
 
-Options:
-      --help            Print usage
-  -o, --output string   Write to a file, instead of STDOUT
-```
+`docker container export`, `docker export`
+
+### Options
+
+| Name             | Type     | Default | Description                        |
+|:-----------------|:---------|:--------|:-----------------------------------|
+| `-o`, `--output` | `string` |         | Write to a file, instead of STDOUT |
+
+
+<!---MARKER_GEN_END-->
 
 ## Description
 
@@ -26,7 +23,7 @@ with the container. If a volume is mounted on top of an existing directory in
 the container, `docker export` will export the contents of the *underlying*
 directory, not the contents of the volume.
 
-Refer to [Backup, restore, or migrate data volumes](https://docs.docker.com/storage/volumes/#backup-restore-or-migrate-data-volumes)
+Refer to [Backup, restore, or migrate data volumes](https://docs.docker.com/storage/volumes/#back-up-restore-or-migrate-data-volumes)
 in the user guide for examples on exporting data in a volume.
 
 ## Examples

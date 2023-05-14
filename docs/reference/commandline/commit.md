@@ -1,26 +1,23 @@
----
-title: "commit"
-description: "The commit command description and usage"
-keywords: "commit, file, changes"
----
-
 # commit
 
-```markdown
-Usage:  docker commit [OPTIONS] CONTAINER [REPOSITORY[:TAG]]
-
+<!---MARKER_GEN_START-->
 Create a new image from a container's changes
 
-Aliases:
-  docker container commit, docker commit
+### Aliases
 
-Options:
-  -a, --author string    Author (e.g., "John Hannibal Smith <hannibal@a-team.com>")
-  -c, --change value     Apply Dockerfile instruction to the created image (default [])
-      --help             Print usage
-  -m, --message string   Commit message
-  -p, --pause            Pause container during commit (default true)
-```
+`docker container commit`, `docker commit`
+
+### Options
+
+| Name                                   | Type     | Default | Description                                                |
+|:---------------------------------------|:---------|:--------|:-----------------------------------------------------------|
+| `-a`, `--author`                       | `string` |         | Author (e.g., `John Hannibal Smith <hannibal@a-team.com>`) |
+| [`-c`](#change), [`--change`](#change) | `list`   |         | Apply Dockerfile instruction to the created image          |
+| `-m`, `--message`                      | `string` |         | Commit message                                             |
+| `-p`, `--pause`                        |          |         | Pause container during commit                              |
+
+
+<!---MARKER_GEN_END-->
 
 ## Description
 
@@ -50,8 +47,8 @@ created.  Supported `Dockerfile` instructions:
 $ docker ps
 
 CONTAINER ID        IMAGE               COMMAND             CREATED             STATUS              PORTS              NAMES
-c3f279d17e0a        ubuntu:12.04        /bin/bash           7 days ago          Up 25 hours                            desperate_dubinsky
-197387f1b436        ubuntu:12.04        /bin/bash           7 days ago          Up 25 hours                            focused_hamilton
+c3f279d17e0a        ubuntu:22.04        /bin/bash           7 days ago          Up 25 hours                            desperate_dubinsky
+197387f1b436        ubuntu:22.04        /bin/bash           7 days ago          Up 25 hours                            focused_hamilton
 
 $ docker commit c3f279d17e0a  svendowideit/testimage:version3
 
@@ -63,14 +60,14 @@ REPOSITORY                        TAG                 ID                  CREATE
 svendowideit/testimage            version3            f5283438590d        16 seconds ago      335.7 MB
 ```
 
-### <a name=change></a> Commit a container with new configurations (--change)
+### <a name="change"></a> Commit a container with new configurations (--change)
 
 ```console
 $ docker ps
 
 CONTAINER ID       IMAGE               COMMAND             CREATED             STATUS              PORTS              NAMES
-c3f279d17e0a        ubuntu:12.04        /bin/bash           7 days ago          Up 25 hours                            desperate_dubinsky
-197387f1b436        ubuntu:12.04        /bin/bash           7 days ago          Up 25 hours                            focused_hamilton
+c3f279d17e0a       ubuntu:22.04        /bin/bash           7 days ago          Up 25 hours                            desperate_dubinsky
+197387f1b436       ubuntu:22.04        /bin/bash           7 days ago          Up 25 hours                            focused_hamilton
 
 $ docker inspect -f "{{ .Config.Env }}" c3f279d17e0a
 
@@ -91,8 +88,8 @@ $ docker inspect -f "{{ .Config.Env }}" f5283438590d
 $ docker ps
 
 CONTAINER ID        IMAGE               COMMAND             CREATED             STATUS              PORTS              NAMES
-c3f279d17e0a        ubuntu:12.04        /bin/bash           7 days ago          Up 25 hours                            desperate_dubinsky
-197387f1b436        ubuntu:12.04        /bin/bash           7 days ago          Up 25 hours                            focused_hamilton
+c3f279d17e0a        ubuntu:22.04        /bin/bash           7 days ago          Up 25 hours                            desperate_dubinsky
+197387f1b436        ubuntu:22.04        /bin/bash           7 days ago          Up 25 hours                            focused_hamilton
 
 $ docker commit --change='CMD ["apachectl", "-DFOREGROUND"]' -c "EXPOSE 80" c3f279d17e0a  svendowideit/testimage:version4
 
@@ -106,6 +103,6 @@ $ docker ps
 
 CONTAINER ID        IMAGE               COMMAND                 CREATED             STATUS              PORTS              NAMES
 89373736e2e7        testimage:version4  "apachectl -DFOREGROU"  3 seconds ago       Up 2 seconds        80/tcp             distracted_fermat
-c3f279d17e0a        ubuntu:12.04        /bin/bash               7 days ago          Up 25 hours                            desperate_dubinsky
-197387f1b436        ubuntu:12.04        /bin/bash               7 days ago          Up 25 hours                            focused_hamilton
+c3f279d17e0a        ubuntu:22.04        /bin/bash               7 days ago          Up 25 hours                            desperate_dubinsky
+197387f1b436        ubuntu:22.04        /bin/bash               7 days ago          Up 25 hours                            focused_hamilton
 ```

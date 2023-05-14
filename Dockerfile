@@ -1,15 +1,16 @@
 # syntax=docker/dockerfile:1
 
 ARG BASE_VARIANT=alpine
-ARG GO_VERSION=1.19.2
+ARG GO_VERSION=1.20.4
+ARG ALPINE_VERSION=3.16
 ARG XX_VERSION=1.1.1
 ARG GOVERSIONINFO_VERSION=v1.3.0
-ARG GOTESTSUM_VERSION=v1.7.0
-ARG BUILDX_VERSION=0.9.0
+ARG GOTESTSUM_VERSION=v1.8.2
+ARG BUILDX_VERSION=0.10.4
 
 FROM --platform=$BUILDPLATFORM tonistiigi/xx:${XX_VERSION} AS xx
 
-FROM --platform=$BUILDPLATFORM golang:${GO_VERSION}-${BASE_VARIANT} AS build-base-alpine
+FROM --platform=$BUILDPLATFORM golang:${GO_VERSION}-alpine${ALPINE_VERSION} AS build-base-alpine
 COPY --from=xx / /
 RUN apk add --no-cache bash clang lld llvm file git
 WORKDIR /go/src/github.com/docker/cli
@@ -124,8 +125,8 @@ CMD ./scripts/test/e2e/entry
 FROM build-base-${BASE_VARIANT} AS dev
 COPY . .
 
-FROM scratch AS binary
-COPY --from=build /out .
-
 FROM scratch AS plugins
 COPY --from=build-plugins /out .
+
+FROM scratch AS binary
+COPY --from=build /out .

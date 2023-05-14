@@ -1,26 +1,23 @@
----
-title: "stats"
-description: "The stats command description and usage"
-keywords: "container, resource, statistics"
----
-
 # stats
 
-```markdown
-Usage:  docker stats [OPTIONS] [CONTAINER...]
-
+<!---MARKER_GEN_START-->
 Display a live stream of container(s) resource usage statistics
 
-Aliases:
-  docker container stats, docker stats
+### Aliases
 
-Options:
-  -a, --all             Show all containers (default shows just running)
-      --format string   Pretty-print images using a Go template
-      --help            Print usage
-      --no-stream       Disable streaming stats and only pull the first result
-      --no-trunc        Don't truncate output
-```
+`docker container stats`, `docker stats`
+
+### Options
+
+| Name                  | Type     | Default | Description                                                                                                                                                                                                                                                                                                                                                                                                                          |
+|:----------------------|:---------|:--------|:-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `-a`, `--all`         |          |         | Show all containers (default shows just running)                                                                                                                                                                                                                                                                                                                                                                                     |
+| [`--format`](#format) | `string` |         | Format output using a custom template:<br>'table':            Print output in table format with column headers (default)<br>'table TEMPLATE':   Print output in table format using the given Go template<br>'json':             Print in JSON format<br>'TEMPLATE':         Print output using the given Go template.<br>Refer to https://docs.docker.com/go/formatting/ for more information about formatting output with templates |
+| `--no-stream`         |          |         | Disable streaming stats and only pull the first result                                                                                                                                                                                                                                                                                                                                                                               |
+| `--no-trunc`          |          |         | Do not truncate output                                                                                                                                                                                                                                                                                                                                                                                                               |
+
+
+<!---MARKER_GEN_END-->
 
 ## Description
 
@@ -66,7 +63,7 @@ e5c383697914        test-1951.1.kay7x1lh1twk9c0oig50sd5tr   0.00%               
 4bda148efbc0        random.1.vnc8on831idyr42slu578u3cr      0.00%               1.672MiB / 1.952GiB   0.08%               110kB / 0B          578kB / 0B          2
 ```
 
-If you don't [specify a format string using `--format`](#formatting), the
+If you don't [specify a format string using `--format`](#format), the
 following columns are shown.
 
 | Column name               | Description                                                                                   |
@@ -98,16 +95,16 @@ $ docker stats nginx --no-stream --format "{{ json . }}"
 Running `docker stats` with customized format on all (Running and Stopped) containers.
 
 ```console
-$ docker stats --all --format "table {{.Container}}\t{{.CPUPerc}}\t{{.MemUsage}}" fervent_panini 5acfcb1b4fd1 drunk_visvesvaraya big_heisenberg
+$ docker stats --all --format "table {{.Container}}\t{{.CPUPerc}}\t{{.MemUsage}}" fervent_panini 5acfcb1b4fd1 humble_visvesvaraya big_heisenberg
 
 CONTAINER                CPU %               MEM USAGE / LIMIT
 fervent_panini           0.00%               56KiB / 15.57GiB
 5acfcb1b4fd1             0.07%               32.86MiB / 15.57GiB
-drunk_visvesvaraya       0.00%               0B / 0B
+humble_visvesvaraya      0.00%               0B / 0B
 big_heisenberg           0.00%               0B / 0B
 ```
 
-`drunk_visvesvaraya` and `big_heisenberg` are stopped containers in the above example.
+`humble_visvesvaraya` and `big_heisenberg` are stopped containers in the above example.
 
 Running `docker stats` on all running containers against a Windows daemon.
 
@@ -134,7 +131,7 @@ CONTAINER ID        NAME                CPU %               PRIV WORKING SET    
 9db7aa4d986d        mad_wilson          9.59%               40.09 MiB           27.6 kB / 8.81 kB   17 MB / 20.1 MB
 ```
 
-### <a name=format></a> Format the output (--format)
+### <a name="format"></a> Format the output (--format)
 
 The formatting option (`--format`) pretty prints container output
 using a Go template.

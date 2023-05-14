@@ -72,16 +72,16 @@ func newCreateCommand(dockerCli command.Cli) *cobra.Command {
 	flags.StringVar(&options.group, "group", "", "Cluster Volume group (cluster volumes)")
 	flags.SetAnnotation("group", "version", []string{"1.42"})
 	flags.SetAnnotation("group", "swarm", []string{"manager"})
-	flags.StringVar(&options.scope, "scope", "single", `Cluster Volume access scope ("single"|"multi")`)
+	flags.StringVar(&options.scope, "scope", "single", `Cluster Volume access scope ("single", "multi")`)
 	flags.SetAnnotation("scope", "version", []string{"1.42"})
 	flags.SetAnnotation("scope", "swarm", []string{"manager"})
-	flags.StringVar(&options.sharing, "sharing", "none", `Cluster Volume access sharing ("none"|"readonly"|"onewriter"|"all")`)
+	flags.StringVar(&options.sharing, "sharing", "none", `Cluster Volume access sharing ("none", "readonly", "onewriter", "all")`)
 	flags.SetAnnotation("sharing", "version", []string{"1.42"})
 	flags.SetAnnotation("sharing", "swarm", []string{"manager"})
-	flags.StringVar(&options.availability, "availability", "active", `Cluster Volume availability ("active"|"pause"|"drain")`)
+	flags.StringVar(&options.availability, "availability", "active", `Cluster Volume availability ("active", "pause", "drain")`)
 	flags.SetAnnotation("availability", "version", []string{"1.42"})
 	flags.SetAnnotation("availability", "swarm", []string{"manager"})
-	flags.StringVar(&options.accessType, "type", "block", `Cluster Volume access type ("mount"|"block")`)
+	flags.StringVar(&options.accessType, "type", "block", `Cluster Volume access type ("mount", "block")`)
 	flags.SetAnnotation("type", "version", []string{"1.42"})
 	flags.SetAnnotation("type", "swarm", []string{"manager"})
 	flags.Var(&options.secrets, "secret", "Cluster Volume secrets")
@@ -165,9 +165,9 @@ func runCreate(dockerCli command.Cli, options createOptions) error {
 			// comma-separated list of equal separated maps
 			segments := map[string]string{}
 			for _, segment := range strings.Split(top, ",") {
-				parts := strings.SplitN(segment, "=", 2)
 				// TODO(dperny): validate topology syntax
-				segments[parts[0]] = parts[1]
+				k, v, _ := strings.Cut(segment, "=")
+				segments[k] = v
 			}
 			topology.Requisite = append(
 				topology.Requisite,
@@ -180,9 +180,9 @@ func runCreate(dockerCli command.Cli, options createOptions) error {
 			// comma-separated list of equal separated maps
 			segments := map[string]string{}
 			for _, segment := range strings.Split(top, ",") {
-				parts := strings.SplitN(segment, "=", 2)
 				// TODO(dperny): validate topology syntax
-				segments[parts[0]] = parts[1]
+				k, v, _ := strings.Cut(segment, "=")
+				segments[k] = v
 			}
 
 			topology.Preferred = append(

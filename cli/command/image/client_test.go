@@ -87,11 +87,11 @@ func (cli *fakeClient) ImageLoad(_ context.Context, input io.Reader, quiet bool)
 	return types.ImageLoadResponse{}, nil
 }
 
-func (cli *fakeClient) ImageList(ctx context.Context, options types.ImageListOptions) ([]types.ImageSummary, error) {
+func (cli *fakeClient) ImageList(_ context.Context, options types.ImageListOptions) ([]types.ImageSummary, error) {
 	if cli.imageListFunc != nil {
 		return cli.imageListFunc(options)
 	}
-	return []types.ImageSummary{{}}, nil
+	return []types.ImageSummary{}, nil
 }
 
 func (cli *fakeClient) ImageInspectWithRaw(_ context.Context, image string) (types.ImageInspect, []byte, error) {

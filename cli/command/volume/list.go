@@ -10,6 +10,7 @@ import (
 	"github.com/docker/cli/cli/command/formatter"
 	flagsHelper "github.com/docker/cli/cli/flags"
 	"github.com/docker/cli/opts"
+	"github.com/docker/docker/api/types/volume"
 	"github.com/fvbommel/sortorder"
 	"github.com/spf13/cobra"
 )
@@ -42,7 +43,7 @@ func newListCommand(dockerCli command.Cli) *cobra.Command {
 	flags := cmd.Flags()
 	flags.BoolVarP(&options.quiet, "quiet", "q", false, "Only display volume names")
 	flags.StringVar(&options.format, "format", "", flagsHelper.FormatHelp)
-	flags.VarP(&options.filter, "filter", "f", "Provide filter values (e.g. 'dangling=true')")
+	flags.VarP(&options.filter, "filter", "f", `Provide filter values (e.g. "dangling=true")`)
 	flags.BoolVar(&options.cluster, "cluster", false, "Display only cluster volumes, and use cluster volume list formatting")
 	flags.SetAnnotation("cluster", "version", []string{"1.42"})
 	flags.SetAnnotation("cluster", "swarm", []string{"manager"})
@@ -52,7 +53,7 @@ func newListCommand(dockerCli command.Cli) *cobra.Command {
 
 func runList(dockerCli command.Cli, options listOptions) error {
 	client := dockerCli.Client()
-	volumes, err := client.VolumeList(context.Background(), options.filter.Value())
+	volumes, err := client.VolumeList(context.Background(), volume.ListOptions{Filters: options.filter.Value()})
 	if err != nil {
 		return err
 	}
@@ -70,9 +71,9 @@ func runList(dockerCli command.Cli, options listOptions) error {
 
 		// trick for filtering in place
 		n := 0
-		for _, volume := range volumes.Volumes {
-			if volume.ClusterVolume != nil {
-				volumes.Volumes[n] = volume
+		for _, vol := range volumes.Volumes {
+			if vol.ClusterVolume != nil {
+				volumes.Volumes[n] = vol
 				n++
 			}
 		}

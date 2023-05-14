@@ -6,16 +6,14 @@ import (
 	"fmt"
 	"testing"
 
-	"gotest.tools/v3/assert"
-	is "gotest.tools/v3/assert/cmp"
-
-	// Prevents a circular import with "github.com/docker/cli/internal/test"
-
-	. "github.com/docker/cli/cli/command"
+	. "github.com/docker/cli/cli/command" // Prevents a circular import with "github.com/docker/cli/internal/test"
 	configtypes "github.com/docker/cli/cli/config/types"
 	"github.com/docker/cli/internal/test"
 	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/api/types/registry"
 	"github.com/docker/docker/client"
+	"gotest.tools/v3/assert"
+	is "gotest.tools/v3/assert/cmp"
 )
 
 type fakeClient struct {
@@ -23,7 +21,7 @@ type fakeClient struct {
 	infoFunc func() (types.Info, error)
 }
 
-var testAuthConfigs = []types.AuthConfig{
+var testAuthConfigs = []registry.AuthConfig{
 	{
 		ServerAddress: "https://index.docker.io/v1/",
 		Username:      "u0",
@@ -48,13 +46,13 @@ func TestGetDefaultAuthConfig(t *testing.T) {
 		checkCredStore     bool
 		inputServerAddress string
 		expectedErr        string
-		expectedAuthConfig types.AuthConfig
+		expectedAuthConfig registry.AuthConfig
 	}{
 		{
 			checkCredStore:     false,
 			inputServerAddress: "",
 			expectedErr:        "",
-			expectedAuthConfig: types.AuthConfig{
+			expectedAuthConfig: registry.AuthConfig{
 				ServerAddress: "",
 				Username:      "",
 				Password:      "",
@@ -104,7 +102,7 @@ func TestGetDefaultAuthConfig_HelperError(t *testing.T) {
 	cli.SetErr(errBuf)
 	cli.ConfigFile().CredentialsStore = "fake-does-not-exist"
 	serverAddress := "test-server-address"
-	expectedAuthConfig := types.AuthConfig{
+	expectedAuthConfig := registry.AuthConfig{
 		ServerAddress: serverAddress,
 	}
 	authconfig, err := GetDefaultAuthConfig(cli, true, serverAddress, serverAddress == "https://index.docker.io/v1/")

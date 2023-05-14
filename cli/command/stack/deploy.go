@@ -28,7 +28,7 @@ func newDeployCommand(dockerCli command.Cli) *cobra.Command {
 			if err != nil {
 				return err
 			}
-			return RunDeploy(dockerCli, cmd.Flags(), config, opts)
+			return swarm.RunDeploy(dockerCli, opts, config)
 		},
 		ValidArgsFunction: func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 			return completeNames(dockerCli)(cmd, args, toComplete)
@@ -42,12 +42,14 @@ func newDeployCommand(dockerCli command.Cli) *cobra.Command {
 	flags.BoolVar(&opts.Prune, "prune", false, "Prune services that are no longer referenced")
 	flags.SetAnnotation("prune", "version", []string{"1.27"})
 	flags.StringVar(&opts.ResolveImage, "resolve-image", swarm.ResolveImageAlways,
-		`Query the registry to resolve image digest and supported platforms ("`+swarm.ResolveImageAlways+`"|"`+swarm.ResolveImageChanged+`"|"`+swarm.ResolveImageNever+`")`)
+		`Query the registry to resolve image digest and supported platforms ("`+swarm.ResolveImageAlways+`", "`+swarm.ResolveImageChanged+`", "`+swarm.ResolveImageNever+`")`)
 	flags.SetAnnotation("resolve-image", "version", []string{"1.30"})
 	return cmd
 }
 
-// RunDeploy performs a stack deploy against the specified swarm cluster
-func RunDeploy(dockerCli command.Cli, flags *pflag.FlagSet, config *composetypes.Config, opts options.Deploy) error {
+// RunDeploy performs a stack deploy against the specified swarm cluster.
+//
+// Deprecated: use [swarm.RunDeploy] instead.
+func RunDeploy(dockerCli command.Cli, _ *pflag.FlagSet, config *composetypes.Config, opts options.Deploy) error {
 	return swarm.RunDeploy(dockerCli, opts, config)
 }

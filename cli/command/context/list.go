@@ -44,31 +44,59 @@ func runList(dockerCli command.Cli, opts *listOptions) error {
 	if opts.format == "" {
 		opts.format = formatter.TableFormatKey
 	}
-	curContext := dockerCli.CurrentContext()
 	contextMap, err := dockerCli.ContextStore().List()
 	if err != nil {
 		return err
 	}
-	var contexts []*formatter.ClientContext
+	var (
+		curContext = dockerCli.CurrentContext()
+		curFound   bool
+		contexts   []*formatter.ClientContext
+	)
 	for _, rawMeta := range contextMap {
+		isCurrent := rawMeta.Name == curContext
+		if isCurrent {
+			curFound = true
+		}
 		meta, err := command.GetDockerContext(rawMeta)
 		if err != nil {
-			return err
+			// Add a stub-entry to the list, including the error-message
+			// indicating that the context couldn't be loaded.
+			contexts = append(contexts, &formatter.ClientContext{
+				Name:    rawMeta.Name,
+				Current: isCurrent,
+				Error:   err.Error(),
+			})
+			continue
 		}
+		var errMsg string
 		dockerEndpoint, err := docker.EndpointFromContext(rawMeta)
 		if err != nil {
-			return err
-		}
-		if rawMeta.Name == command.DefaultContextName {
-			meta.Description = "Current DOCKER_HOST based configuration"
+			errMsg = err.Error()
 		}
 		desc := formatter.ClientContext{
 			Name:           rawMeta.Name,
-			Current:        rawMeta.Name == curContext,
+			Current:        isCurrent,
 			Description:    meta.Description,
 			DockerEndpoint: dockerEndpoint.Host,
+			Error:          errMsg,
 		}
 		contexts = append(contexts, &desc)
+	}
+	if !curFound {
+		// The currently specified context wasn't found. We add a stub-entry
+		// to the list, including the error-message indicating that the context
+		// wasn't found.
+		var errMsg string
+		_, err := dockerCli.ContextStore().GetMetadata(curContext)
+		if err != nil {
+			errMsg = err.Error()
+		}
+		contexts = append(contexts, &formatter.ClientContext{
+			Name:    curContext,
+			Current: true,
+			Error:   errMsg,
+		})
 	}
 	sort.Slice(contexts, func(i, j int) bool {
 		return sortorder.NaturalLess(contexts[i].Name, contexts[j].Name)
@@ -77,7 +105,7 @@ func runList(dockerCli command.Cli, opts *listOptions) error {
 		return err
 	}
 	if os.Getenv(client.EnvOverrideHost) != "" {
-		fmt.Fprintf(dockerCli.Err(), "Warning: %[1]s environment variable overrides the active context. "+
+		_, _ = fmt.Fprintf(dockerCli.Err(), "Warning: %[1]s environment variable overrides the active context. "+
 			"To use a context, either set the global --context flag, or unset %[1]s environment variable.\n", client.EnvOverrideHost)
 	}
 	return nil

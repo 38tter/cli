@@ -14,7 +14,6 @@ import (
 	cliflags "github.com/docker/cli/cli/flags"
 	"github.com/docker/cli/cli/version"
 	"github.com/docker/docker/api/types/versions"
-	"github.com/docker/docker/client"
 	"github.com/moby/buildkit/util/appcontext"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
@@ -52,6 +51,10 @@ func newDockerCommand(dockerCli *command.DockerCli) *cli.TopLevelCommand {
 			DisableDescriptions: true,
 		},
 	}
+	cmd.SetIn(dockerCli.In())
+	cmd.SetOut(dockerCli.Out())
+	cmd.SetErr(dockerCli.Err())
+
 	opts, flags, helpCmd = cli.SetupRootCommand(cmd)
 	registerCompletionFuncForGlobalFlags(dockerCli, cmd)
 	flags.BoolP("version", "v", false, "Print version information and quit")
@@ -130,13 +133,20 @@ func tryRunPluginHelp(dockerCli command.Cli, ccmd *cobra.Command, cargs []string
 func setHelpFunc(dockerCli command.Cli, cmd *cobra.Command) {
 	defaultHelpFunc := cmd.HelpFunc()
 	cmd.SetHelpFunc(func(ccmd *cobra.Command, args []string) {
-		if pluginmanager.IsPluginCommand(ccmd) {
+		if err := pluginmanager.AddPluginCommandStubs(dockerCli, ccmd.Root()); err != nil {
+			ccmd.Println(err)
+			return
+		}
+
+		if len(args) >= 1 {
 			err := tryRunPluginHelp(dockerCli, ccmd, args)
+			if err == nil {
+				return
+			}
 			if !pluginmanager.IsNotFound(err) {
 				ccmd.Println(err)
+				return
 			}
-			cmd.PrintErrf("unknown help topic: %v\n", ccmd.Name())
-			return
 		}
 
 		if err := isSupported(ccmd, dockerCli); err != nil {
@@ -178,11 +188,12 @@ func setValidateArgs(dockerCli command.Cli, cmd *cobra.Command) {
 	})
 }
 
-func tryPluginRun(dockerCli command.Cli, cmd *cobra.Command, subcommand string) error {
+func tryPluginRun(dockerCli command.Cli, cmd *cobra.Command, subcommand string, envs []string) error {
 	plugincmd, err := pluginmanager.PluginRunCommand(dockerCli, subcommand, cmd)
 	if err != nil {
 		return err
 	}
+	plugincmd.Env = append(envs, plugincmd.Env...)
 
 	go func() {
 		// override SIGTERM handler so we let the plugin shut down first
@@ -217,20 +228,26 @@ func runDocker(dockerCli *command.DockerCli) error {
 		return err
 	}
 
-	args, os.Args, err = processAliases(dockerCli, cmd, args, os.Args)
+	var envs []string
+	args, os.Args, envs, err = processAliases(dockerCli, cmd, args, os.Args)
 	if err != nil {
 		return err
 	}
 
-	err = pluginmanager.AddPluginCommandStubs(dockerCli, cmd)
-	if err != nil {
-		return err
+	if cli.HasCompletionArg(args) {
+		// We add plugin command stubs early only for completion. We don't
+		// want to add them for normal command execution as it would cause
+		// a significant performance hit.
+		err = pluginmanager.AddPluginCommandStubs(dockerCli, cmd)
+		if err != nil {
+			return err
+		}
 	}
 
 	if len(args) > 0 {
 		ccmd, _, err := cmd.Find(args)
 		if err != nil || pluginmanager.IsPluginCommand(ccmd) {
-			err := tryPluginRun(dockerCli, cmd, args[0])
+			err := tryPluginRun(dockerCli, cmd, args[0], envs)
 			if !pluginmanager.IsNotFound(err) {
 				return err
 			}
@@ -272,7 +289,7 @@ func main() {
 }
 
 type versionDetails interface {
-	Client() client.APIClient
+	CurrentVersion() string
 	ServerInfo() command.ServerInfo
 }
 
@@ -305,7 +322,7 @@ func hideSubcommandIf(subcmd *cobra.Command, condition func(string) bool, annota
 func hideUnsupportedFeatures(cmd *cobra.Command, details versionDetails) error {
 	var (
 		notExperimental = func(_ string) bool { return !details.ServerInfo().HasExperimental }
-		notOSType       = func(v string) bool { return v != details.ServerInfo().OSType }
+		notOSType       = func(v string) bool { return details.ServerInfo().OSType != "" && v != details.ServerInfo().OSType }
 		notSwarmStatus  = func(v string) bool {
 			s := details.ServerInfo().SwarmStatus
 			if s == nil {
@@ -331,7 +348,7 @@ func hideUnsupportedFeatures(cmd *cobra.Command, details versionDetails) error {
 				return false
 			}
 		}
-		versionOlderThan = func(v string) bool { return versions.LessThan(details.Client().ClientVersion(), v) }
+		versionOlderThan = func(v string) bool { return versions.LessThan(details.CurrentVersion(), v) }
 	)
 
 	cmd.Flags().VisitAll(func(f *pflag.Flag) {
@@ -388,8 +405,8 @@ func areFlagsSupported(cmd *cobra.Command, details versionDetails) error {
 		if !f.Changed {
 			return
 		}
-		if !isVersionSupported(f, details.Client().ClientVersion()) {
-			errs = append(errs, fmt.Sprintf(`"--%s" requires API version %s, but the Docker daemon API version is %s`, f.Name, getFlagAnnotation(f, "version"), details.Client().ClientVersion()))
+		if !isVersionSupported(f, details.CurrentVersion()) {
+			errs = append(errs, fmt.Sprintf(`"--%s" requires API version %s, but the Docker daemon API version is %s`, f.Name, getFlagAnnotation(f, "version"), details.CurrentVersion()))
 			return
 		}
 		if !isOSTypeSupported(f, details.ServerInfo().OSType) {
@@ -415,11 +432,19 @@ func areFlagsSupported(cmd *cobra.Command, details versionDetails) error {
 func areSubcommandsSupported(cmd *cobra.Command, details versionDetails) error {
 	// Check recursively so that, e.g., `docker stack ls` returns the same output as `docker stack`
 	for curr := cmd; curr != nil; curr = curr.Parent() {
-		if cmdVersion, ok := curr.Annotations["version"]; ok && versions.LessThan(details.Client().ClientVersion(), cmdVersion) {
-			return fmt.Errorf("%s requires API version %s, but the Docker daemon API version is %s", cmd.CommandPath(), cmdVersion, details.Client().ClientVersion())
+		// Important: in the code below, calls to "details.CurrentVersion()" and
+		// "details.ServerInfo()" are deliberately executed inline to make them
+		// be executed "lazily". This is to prevent making a connection with the
+		// daemon to perform a "ping" (even for commands that do not require a
+		// daemon connection).
+		//
+		// See commit b39739123b845f872549e91be184cc583f5b387c for details.
+
+		if cmdVersion, ok := curr.Annotations["version"]; ok && versions.LessThan(details.CurrentVersion(), cmdVersion) {
+			return fmt.Errorf("%s requires API version %s, but the Docker daemon API version is %s", cmd.CommandPath(), cmdVersion, details.CurrentVersion())
 		}
-		if os, ok := curr.Annotations["ostype"]; ok && os != details.ServerInfo().OSType {
-			return fmt.Errorf("%s is only supported on a Docker daemon running on %s, but the Docker daemon is running on %s", cmd.CommandPath(), os, details.ServerInfo().OSType)
+		if ost, ok := curr.Annotations["ostype"]; ok && details.ServerInfo().OSType != "" && ost != details.ServerInfo().OSType {
+			return fmt.Errorf("%s is only supported on a Docker daemon running on %s, but the Docker daemon is running on %s", cmd.CommandPath(), ost, details.ServerInfo().OSType)
 		}
 		if _, ok := curr.Annotations["experimental"]; ok && !details.ServerInfo().HasExperimental {
 			return fmt.Errorf("%s is only supported on a Docker daemon with experimental features enabled", cmd.CommandPath())

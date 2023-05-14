@@ -101,6 +101,11 @@ func (c *FakeCli) Client() client.APIClient {
 	return c.client
 }
 
+// CurrentVersion returns the API version used by FakeCli.
+func (c *FakeCli) CurrentVersion() string {
+	return c.DefaultVersion()
+}
+
 // Out returns the output stream (stdout) the cli should write on
 func (c *FakeCli) Out() *streams.Out {
 	return c.out
@@ -176,7 +181,7 @@ func (c *FakeCli) ManifestStore() manifeststore.Store {
 }
 
 // RegistryClient returns a fake client for testing
-func (c *FakeCli) RegistryClient(insecure bool) registryclient.RegistryClient {
+func (c *FakeCli) RegistryClient(bool) registryclient.RegistryClient {
 	return c.registryClient
 }
 
